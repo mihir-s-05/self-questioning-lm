@@ -349,7 +349,7 @@ Which solution do you think is correct? Reply with just the number (1-{len(uniqu
             prompt_ids = data_item.batch["prompts"]
             response_ids = data_item.batch["responses"]
             prompt_length = prompt_ids.shape[-1]
-            valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum()
+            valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum().item()
             valid_response_ids = response_ids[:valid_response_length]
             response_str = self.tokenizer.decode(valid_response_ids, skip_special_tokens=True)
 
@@ -380,7 +380,7 @@ Which solution do you think is correct? Reply with just the number (1-{len(uniqu
                 if answers and answers[0] is not None:
                     data_item = data[indices[0]]
                     prompt_length = data_item.batch["prompts"].shape[-1]
-                    valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum()
+                    valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum().item()
                     reward_tensor[indices[0], valid_response_length - 1] = 1.0
                 continue
 
@@ -409,7 +409,7 @@ Which solution do you think is correct? Reply with just the number (1-{len(uniqu
             for idx, answer in zip(indices, answers):
                 data_item = data[idx]
                 prompt_length = data_item.batch["prompts"].shape[-1]
-                valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum()
+                valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum().item()
 
                 if answer == winning_answer and answer is not None:
                     reward_tensor[idx, valid_response_length - 1] = 1.0

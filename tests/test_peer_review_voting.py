@@ -22,6 +22,7 @@ with various benchmarks and configurations.
 
 import sys
 import torch
+import numpy as np
 from collections import Counter
 from transformers import AutoTokenizer
 
@@ -92,8 +93,8 @@ def create_mock_data_proto(prompts_and_responses, tokenizer):
     }, batch_size=[len(batch_items)])
 
     non_tensor_batch = {
-        'uid': [item['uid'] for item in non_tensor_items],
-        'data_source': [item['data_source'] for item in non_tensor_items],
+        'uid': np.array([item['uid'] for item in non_tensor_items], dtype=object),
+        'data_source': np.array([item['data_source'] for item in non_tensor_items], dtype=object),
     }
 
     data = DataProto(batch=batch, non_tensor_batch=non_tensor_batch)
