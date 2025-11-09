@@ -1,0 +1,109 @@
+# Tool-Grounded Self-Consistency (TSC) Training Configuration
+# This config extends ppo_trainer.yaml with TSC-specific settings
+
+defaults:
+  - ppo_trainer
+  - _self_
+
+# Override reward manager to use TSC
+critic:
+  # Use TSC reward manager for tool-grounded self-consistency
+  reward_manager: tsc
+
+# TSC Reward Manager Configuration
+tsc:
+
+  # Tool type for evaluation: "auto", "math", "code", "qa", "custom"
+  # "auto" will auto-detect based on data_source
+  tool_type: auto
+
+  # Clustering mode: "auto", "tool", "text", "numeric"
+  # "auto" will auto-detect based on tool_type
+  clustering_mode: auto
+
+  # Weight for tool correctness component (0.0 to 1.0)
+  # Higher values prioritize tool-based rewards over self-consistency
+  alpha_tool: 0.8
+
+  # Weight for self-consistency component (0.0 to 1.0)
+  # Higher values prioritize agreement among candidates
+  beta_consistency: 0.2
+
+  # Bonus reward for being in correct majority cluster
+  correct_majority_bonus: 0.1
+
+  # Penalty for being in wrong majority cluster
+  wrong_majority_penalty: 0.3
+
+  # Bonus for correct minority when majority is wrong
+  correct_minority_bonus: 0.15
+
+  # Minimum fraction of candidates to be considered majority (0.0 to 1.0)
+  min_cluster_frac_for_majority: 0.5
+
+  # Tool score threshold to consider cluster correct (0.0 to 1.0)
+  tool_correct_threshold: 0.8
+
+  # Whether to reward correct minorities when majority is wrong
+  allow_correct_minority_reward: true
+
+  # Whether to normalize rewards to zero mean
+  normalize_rewards: true
+
+  # Global scaling factor for rewards
+  reward_scale: 1.0
+
+  # Timeout for code execution (seconds)
+  code_timeout: 10.0
+
+  # Enable debug logging
+  debug: false
+
+# Algorithm configuration
+algorithm:
+
+  # Use GRPO for advantage estimation with TSC rewards
+  # TSC works best with outcome-based advantage estimators like GRPO
+  adv_estimator: grpo
+
+  # Normalize advantages by std in GRPO (recommended for TSC)
+  norm_adv_by_std_in_grpo: true
+
+# Data configuration for TSC
+data:
+
+  # TSC requires multiple candidates per problem
+  # Adjust train_batch_size to be a multiple of num_candidates
+  # For example: if num_candidates=4, train_batch_size should be divisible by 4
+  train_batch_size: 1024
+
+# Rollout configuration
+rollout:
+
+  # Number of candidates to generate per problem (K in TSC)
+  # Recommended: 4-16 depending on computational budget
+  # Higher values give better self-consistency signal but cost more
+  # NOTE: This requires modifying the rollout logic to sample K times per prompt
+  # For now, achieve this by including K copies of each prompt in the dataset
+  # with the same UID for grouping
+  # Example: Each problem appears K times in train.parquet with identical UID
+  num_return_sequences: 1
+
+  # Temperature for sampling (higher = more diverse candidates)
+  # Recommended: 0.6-1.0 for TSC to get diverse candidates
+  temperature: 0.8
+
+  # Top-p sampling (nucleus sampling)
+  # Recommended: 0.9-0.95 for TSC
+  top_p: 0.95
+
+# Note on data preparation for TSC:
+# Your training data should have:
+# 1. Multiple copies of each problem (K copies) in the dataset
+# 2. Each copy should have the same "uid" field for grouping
+# 3. Example parquet schema:
+#    - prompt: str (problem statement)
+#    - uid: str (unique problem identifier, same for K copies)
+#    - data_source: str (dataset name for tool selection)
+#    - ground_truth: str (answer or test cases)
+#    - extra_info: dict (optional additional info)
