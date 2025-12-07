@@ -24,6 +24,7 @@ if __name__ == '__main__':
     parser.add_argument('--prompt_version', default='arithmetic_v1')
     parser.add_argument('--hdfs_dir', default=None)
     parser.add_argument('--num_examples', type=int, default=32768)
+    parser.add_argument('--output_split', default='train', choices=['train', 'test'])
     args = parser.parse_args()
 
     data_source = 'yolo/multiply-3_digit' # using multiply parser for all selfplay setups
@@ -63,6 +64,12 @@ if __name__ == '__main__':
                     "4 ||| 4\n"
                     "-5 -1 -4 ||| -10\n"
                 )
+            elif args.prompt_version == 'multiply-3_digit':
+                prompt = (
+                    "Generate a three-digit multiplication problem (multiplying two distinct three-digit integers). "
+                    "Ensure the numbers are not similar or patterned. "
+                    "Do not solve the problem."
+                )
             else:
                 raise ValueError(f"Unsupported prompt_version: {args.prompt_version}")
 
@@ -87,11 +94,13 @@ if __name__ == '__main__':
 
     # Create dummy dataset
     dummy_dataset = Dataset.from_dict({"dummy": [0] * args.num_examples})
-    mapped_dataset = dummy_dataset.map(function=make_map_fn('train'), with_indices=True)
+    split = args.output_split  # 'train' or 'test'
+    mapped_dataset = dummy_dataset.map(function=make_map_fn(split), with_indices=True)
 
     local_dir = args.local_dir + "_" + args.prompt_version
     os.makedirs(local_dir, exist_ok=True)
-    mapped_dataset.to_parquet(os.path.join(local_dir, 'train.parquet'))
+    filename = f"{split}.parquet"
+    mapped_dataset.to_parquet(os.path.join(local_dir, filename))
 
     if args.hdfs_dir is not None:
         makedirs(args.hdfs_dir)
