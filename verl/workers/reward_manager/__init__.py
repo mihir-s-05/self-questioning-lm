@@ -18,6 +18,7 @@ from .dapo import DAPORewardManager
 from .naive import NaiveRewardManager
 from .prime import PrimeRewardManager
 from .majority import MajorityRewardManager
+from .peer_review import PeerReviewVotingRewardManager
 
 # Note(haibin.lin): no need to include all reward managers here in case of complicated dependencies
-__all__ = ["BatchRewardManager", "DAPORewardManager", "NaiveRewardManager", "PrimeRewardManager", "MajorityRewardManager", "register", "get_reward_manager_cls"]
+__all__ = ["BatchRewardManager", "DAPORewardManager", "NaiveRewardManager", "PrimeRewardManager", "MajorityRewardManager", "PeerReviewVotingRewardManager", "register", "get_reward_manager_cls"]

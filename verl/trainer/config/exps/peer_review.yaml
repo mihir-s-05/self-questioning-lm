@@ -1,0 +1,31 @@
+# @package _global_
+
+# Peer-review voting configuration
+# This config enables peer-review voting where each solver votes on all proposed answers
+# and the answer with the most votes is selected.
+
+reward_model:
+  reward_manager: peer_review
+  reward_kwargs:
+    # Whether to use actual model-based voting (requires generation_fn integration)
+    # Set to false to use simulated voting (each unique answer gets votes = its frequency)
+    use_model_voting: false
+
+    # Voting temperature (only used with model-based voting)
+    voting_temperature: 0.7
+
+    # Maximum tokens to generate for each vote (only used with model-based voting)
+    max_voting_tokens: 10
+
+trainer:
+  # Self-play solver reward strategy: 'ttrl' or 'prime'
+  # ttrl: reward if 1 < num_majority < n (partial agreement)
+  # prime: reward if 0 < avg_score < 1 (some but not all correct)
+  self_play_solver_reward: ttrl
+
+  # Whether to use base format for prompts
+  base_format: false
+
+# Note: To enable model-based voting, you need to pass a generation_fn
+# to the reward manager. This can be done by modifying the trainer code
+# to inject the actor's generation capability into the reward manager.
